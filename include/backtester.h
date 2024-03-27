@@ -16,10 +16,13 @@ Metrics
 */
 #include <string>
 #include <vector>
+#include <tuple>
 #include <unordered_map>
+#include <tqdm.h>
+#include <utils.h>
 
 typedef str std::string;
-typedef order std::vector<str, str, float>; // ticker, order_type, float
+typedef order std::tuple<str, str, float>; // ticker, order_type, float
 
 class Backtester
 {
@@ -27,16 +30,15 @@ public:
     Backtester();
     Backtester(float cash);
 
-    void run_daily_instructions(); // swtich case
+    void run_daily_instructions(); // switch case
     // void run_instruction(order order);
-    float getCash();
-    int getTimestep();
-    std::vector<float> getPortfolioReturns();
-    float getPortfolioValue();
-    unordered_map<std::string, int> getHoldings();
-    void buyStock();
-    void sellStock();
-    float getCurrentPortfolioValue();
+    float getCash() return cash;
+    int getTimestep() return timestep;
+    std::vector<float> getPortfolioReturns() return portfolio_values; // return historical values
+    float getPortfolioValue();                                        // current value
+    std::unordered_map<std::string, int> getHoldings();
+    void buyStock(std::string ticker, int quantity);
+    void sellStock(std::string ticker, int quantity);
 
 protected:
 private:
@@ -47,5 +49,5 @@ private:
     template <T, U>
     unordered_map<T, U> tracker; // tbd exact structure
     float cash;
-    unordered_map<std::string, int>
+    unordered_map<std::string, int> holdings;
 }

@@ -1,3 +1,5 @@
 .vscode/
 .idea
 brainstorm.md
+cmake-build-debug
+vcpkg/
