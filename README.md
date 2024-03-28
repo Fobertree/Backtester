@@ -20,3 +20,9 @@ Using libcurl to support YFinance API. May replace with another library. Otherwi
   - C++ $\rightarrow$ Python
     - unordered_map to dict
     - vector to list
+
+Modify Cmake to compile dll so we can interface with python
+
+## Run CMake to Generate DLL
+
+`cmake -B build .`

@@ -1,5 +1,9 @@
 /*
 Write Python bindings to create a Python interface for our C++ backtest
+
+For Backtester
+-
+
 */
 
 #include <pybind11.h>
@@ -11,12 +15,12 @@ namespace py = pybind11;
 
 // Backtester(float cash, int startDate, int endDate, std::vector<order> instructions)
 py::class_<Backtester>(m, "Backtester")
-    .def(py::init<const int>(), py::init<const int>(), py::init<std::vector>())
+    .def(py::init<const int>(), py::init<const int>(), py::init<const std::vector>(), py : init<const std::string>())
     .def("runBacktest", &Backtester::run_backtest)
     .def("__repr__",
          [](const Backtester &b)
          {
-             return "<Backtester> with $" + b.cash;
+             return "<Backtester> with $" + b.cash + "Start-Date: " + startDate;
          })
     .def("getPortfolioReturns", &Backtester::getPortfolioReturns());
 //.def_property("tracke")

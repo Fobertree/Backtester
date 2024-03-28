@@ -1,5 +1,5 @@
 /*
-At each timestep, we want to allocate threads to process each order at a specific timestep
+At each timestep, we want to allocate threads to process each order at the specific timestep (may need to care about race conditions in edge case where 1 order fails and other doesn't?)
 - Orders processed at same timestep will not interfere with each other, barring some edge cases (etc. buy and sell same stock at same timestep)
 
 Use Pybind11. Boost.Python has too many installation requirements and doesn't seem very portable
@@ -8,47 +8,75 @@ Use Pybind11. Boost.Python has too many installation requirements and doesn't se
 #include <thread>
 #include <iostream>
 #include "backtester.h"
+constexpr auto MAX_THREADS = 4;
+constexpr auto PATH = "data.csv";
+
+Table Backtester::dataTable = Table(PATH);
+datatable Backtester::stockData;
+std::vector<std::string> Backtester::dates = dataTable.getDates();
 
 Backtester::Backtester()
 {
     cash = 100000;
-    startDate = 0;
-    endDate = 0;
-    instructions = std::vector<order>;
+    startDate = "";
+    endDate = "";
+    offset = 0;
 }
 
-Backtester::Backtester(float cash, int startDate, int endDate, std::vector<order> instructions)
+Backtester::Backtester(float cash, std::string startDate, std::string endDate, std::vector<std::vector<order>> instructions, std::string path)
 {
     this->cash = cash;
     this->startDate = startDate;
     this->endDate = endDate;
     this->instructions = instructions;
+    offset = 0;
+
+    Backtester::dataTable = Table("data.csv");
+    Backtester::stockData = dataTable.getData();
+    Backtester::dates = dataTable.getDates();
+}
+
+Backtester::Backtester(float cash, std::string startDate, std::string endDate, std::vector<std::vector<order>> instructions)
+{
+    this->cash = cash;
+    this->startDate = startDate;
+    this->endDate = endDate;
+    this->instructions = instructions;
+    offset = 0;
+}
+
+void Backtester::evalOrder(order &order)
+{
+    std::string order_type, ticker;
+    int quantity;
+
+    std::tie(order_type, ticker, quantity) = order;
+
+    if (order_type == "BUY")
+    {
+        buyStock(ticker, quantity);
+    }
+    else if (order_type == "SELL")
+    {
+        sellStock(ticker, quantity);
+    }
+    else
+    {
+        // printf("Order Type: %s, Ticker: %s, Quantity: %d FAILED", order_type, ticker, quantity);
+        std::cerr << "Order Type: " << order_type << ", Ticker: " << ticker << ", Quantity: " << quantity << " FAILED!" << std::endl;
+    }
 }
 
 void Backtester::run_backtest()
 {
     // order is a size-3 tuple declared in header
-    for (auto &order : tqdm::tqdm(instructions))
+    for (auto const &orderTimestep : tqdm::tqdm(instructions.begin(), instructions.end()))
     {
-        std::string order_type, ticker;
-        int quantity;
-
-        std::tie(order_type, ticker, quantity) = order;
-
-        switch (order_type)
+        for (auto const &order : orderTimestep)
         {
-        case "BUY":
-            buyStock(ticker, quantity);
-            break;
-        case "SELL":
-            sellStock(ticker, quantity);
-            break;
-        case "HOLD":
-            break;
+            // look into thread pool
 
-        default:
-            // printf("Order Type: %s, Ticker: %s, Quantity: %d FAILED", order_type, ticker, quantity);
-            std::cerr << "Order Type: " << order_type << ", Ticker: " << ticker << ", Quantity: " << quantity << " FAILED!" << std::endl;
+            evalOrder(order);
         }
 
         portfolio_values.push_back(getPortfolioValue());
@@ -104,7 +132,10 @@ void Backtester::sellStock(std::string ticker, int quantity)
         return;
     }
 
-    else if (holdings == quantity)
+    float cost;
+    cost = fetchStockPrice(ticker, quantity, timestep);
+
+    if (holdings == quantity)
     {
         holdings.erase(ticker);
     }
@@ -117,7 +148,23 @@ void Backtester::sellStock(std::string ticker, int quantity)
     cash += cost;
 }
 
-float fetchStockPrice(std::string ticker, int quantity, int timestep)
+float Backtester::setStartIndex(std::string startDate)
 {
-    // TODO
+    dates = dataTable.getDates();
+    for (int i = 0; i < dates.size(); i++)
+    {
+        if (startDate == dates[i])
+        {
+            offset = i;
+            return;
+        }
+    }
+    std::cerr << "Failed to locate valid startDate in data: " << startDate << std::endl;
+}
+
+float Backtester::fetchStockPrice(std::string ticker, int quantity, int timestep)
+{
+    // rewrite or overload to be a lot more dynamic and flexible beyond pseudo-indexed map
+    // TODO: Support and make flexible Yfinance curl requests
+    return stockData[ticker][offset + timestep];
 }

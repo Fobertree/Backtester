@@ -4,3 +4,12 @@ brainstorm.md
 cmake-build-debug
 vcpkg/
 build/
+CMakeFiles/
+CMakeCache.txt
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.cmake
+.vs/
+x64/Debug/
+CPP_BACKTESTER.dir/
