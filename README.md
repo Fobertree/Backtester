@@ -25,4 +25,6 @@ Modify Cmake to compile dll so we can interface with python
 
 ## Run CMake to Generate DLL
 
-`cmake -B build .`
+`cmake -B build . -G "Visual Studio 17 2022"`
+
+[Build C++ Extension for Python in Visual Studio](https://learn.microsoft.com/en-us/visualstudio/python/working-with-c-cpp-python-in-visual-studio?view=vs-2022)

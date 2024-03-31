@@ -13,3 +13,5 @@ CMakeCache.txt
 .vs/
 x64/Debug/
 CPP_BACKTESTER.dir/
+*.vcxproj.user
+x64/

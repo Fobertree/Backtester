@@ -6,7 +6,7 @@ https://www.anthonymorast.com/blog/2020/10/09/retrieving-historical-stock-data-i
 #include <string.h>
 #include <curl/curl.h>
 #include <ctime>
-#include <DataTable/DataTable.hp>
+// #include <DataTable/DataTable.hp>
 #include <iomanip>
 #include <sstream>
 #include <iostream>

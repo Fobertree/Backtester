@@ -70,9 +70,9 @@ void Backtester::evalOrder(order &order)
 void Backtester::run_backtest()
 {
     // order is a size-3 tuple declared in header
-    for (auto const &orderTimestep : tqdm::tqdm(instructions.begin(), instructions.end()))
+    for (auto &orderTimestep : tqdm::tqdm(instructions.begin(), instructions.end()))
     {
-        for (auto const &order : orderTimestep)
+        for (auto &order : orderTimestep)
         {
             // look into thread pool
 
@@ -86,7 +86,7 @@ void Backtester::run_backtest()
 
 float Backtester::getPortfolioValue()
 {
-    float equityValue;
+    float equityValue{ 0 };
 
     for (auto &holding : holdings)
     {
@@ -135,7 +135,7 @@ void Backtester::sellStock(std::string ticker, int quantity)
     float cost;
     cost = fetchStockPrice(ticker, quantity, timestep);
 
-    if (holdings == quantity)
+    if (holdings[ticker] == quantity)
     {
         holdings.erase(ticker);
     }
@@ -148,7 +148,7 @@ void Backtester::sellStock(std::string ticker, int quantity)
     cash += cost;
 }
 
-float Backtester::setStartIndex(std::string startDate)
+void Backtester::setStartIndex(std::string startDate)
 {
     dates = dataTable.getDates();
     for (int i = 0; i < dates.size(); i++)
@@ -156,7 +156,6 @@ float Backtester::setStartIndex(std::string startDate)
         if (startDate == dates[i])
         {
             offset = i;
-            return;
         }
     }
     std::cerr << "Failed to locate valid startDate in data: " << startDate << std::endl;
@@ -166,5 +165,6 @@ float Backtester::fetchStockPrice(std::string ticker, int quantity, int timestep
 {
     // rewrite or overload to be a lot more dynamic and flexible beyond pseudo-indexed map
     // TODO: Support and make flexible Yfinance curl requests
-    return stockData[ticker][offset + timestep];
+    std::string date = dates[offset + timestep];
+    return stockData[ticker][date];
 }

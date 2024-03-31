@@ -23,6 +23,7 @@ Usage:
 @author Casper dC-L <github.com/casperdcl>
 */
 
+#define NOMINMAX
 #include <cassert>      // assert
 #include <cinttypes>    // PRIu64
 #include <cstddef>      // ptrdiff_t, size_t

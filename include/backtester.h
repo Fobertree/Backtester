@@ -14,8 +14,11 @@ Metrics
 - Avg. % of liquid cash?
 
 */
+#ifndef BACKTESTER
+#define BACKTESTER
+
 #include <string>
-#include <vector>
+//#include <vector>
 #include <tuple>
 #include <unordered_map>
 #include <thread>
@@ -23,7 +26,7 @@ Metrics
 #include <queue>
 #include <tqdm/tqdm.h>
 #include <utils.h>
-#include "table.h";
+#include "table.h"
 
 typedef std::tuple<std::string, std::string, float> order; // ticker, order_type, float
 typedef std::map<std::string, std::map<std::string, float>> datatable;
@@ -42,16 +45,21 @@ public:
 
     void run_backtest(); // switch case
     // void run_instruction(order order);
-    float getCash() { return cash; }
+    //float getCash() { return cash; }
     int getTimestep() { return timestep; }
-    std::vector<float> getPortfolioReturns() { return portfolio_values; } // return historical values
-    float getPortfolioValue();                                            // current value
+    // std::vector<float> getPortfolioReturns() { return portfolio_values; } // return historical values
+    float getPortfolioValue(); // current value
     std::unordered_map<std::string, int> getHoldings();
     void buyStock(std::string ticker, int quantity);
     void sellStock(std::string ticker, int quantity);
-    float setStartIndex(std::string startDate);
+    void setStartIndex(std::string startDate);
     void evalOrder(order &order);
     float fetchStockPrice(std::string ticker, int quantity, int timestep);
+    std::string getStartDate() const { return startDate; }
+    std::string getEndDate() const { return endDate; }
+    // const getters for __repr__
+    float getCash() const { return cash; }
+    std::vector<float> getPortfolioReturns() const { return portfolio_values; }
 
 protected:
 private:
@@ -61,7 +69,7 @@ private:
     // template <T, U>
     // unordered_map<T, U> tracker; // tbd exact structure
     float cash;
-    unordered_map<std::string, int> holdings;
+    std::unordered_map<std::string, int> holdings;
     // need to figure out how to best handle time objects
     std::string startDate; // yyyymmdd?
     std::string endDate;
@@ -76,3 +84,5 @@ private:
     static datatable stockData;
     static std::vector<std::string> dates;
 };
+
+#endif

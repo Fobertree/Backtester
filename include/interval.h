@@ -3,6 +3,9 @@ Taken from Anthony Morast
 https://www.anthonymorast.com/blog/2020/10/09/retrieving-historical-stock-data-in-c/
 */
 
+#ifndef INTERVAL
+#define INTERVAL
+
 #include <string.h>
 enum Interval
 {
@@ -15,3 +18,5 @@ std::string get_api_interval_value(int value)
 {
     return EnumAPIValues[value];
 }
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef TABLE
+#define TABLE
+
 #include <cstring>
 #include <fstream>
 #include <string>
@@ -19,7 +22,7 @@ public:
     void printData();
     std::vector<std::string> getDates() { return rowLabels; }
     std::vector<std::string> getTickers() { return colLabels; }
-    datatable& getData() { return data; }
+    datatable &getData() { return data; }
 
 protected:
 private:
@@ -27,3 +30,5 @@ private:
     std::vector<std::string> rowLabels;
     std::vector<std::string> colLabels;
 };
+
+#endif
