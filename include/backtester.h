@@ -24,8 +24,8 @@ Metrics
 #include <thread>
 #include <mutex>
 #include <queue>
-#include <tqdm/tqdm.h>
-#include <utils.h>
+//#include <tqdm/tqdm.h>
+//#include <utils.h>
 #include "table.h"
 
 typedef std::tuple<std::string, std::string, float> order; // ticker, order_type, float

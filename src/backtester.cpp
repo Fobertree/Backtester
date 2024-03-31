@@ -12,7 +12,7 @@ constexpr auto MAX_THREADS = 4;
 constexpr auto PATH = "data.csv";
 
 Table Backtester::dataTable = Table(PATH);
-datatable Backtester::stockData;
+datatable Backtester::stockData = dataTable.getData();
 std::vector<std::string> Backtester::dates = dataTable.getDates();
 
 Backtester::Backtester()
@@ -70,7 +70,8 @@ void Backtester::evalOrder(order &order)
 void Backtester::run_backtest()
 {
     // order is a size-3 tuple declared in header
-    for (auto &orderTimestep : tqdm::tqdm(instructions.begin(), instructions.end()))
+    //tqdm::tqdm(instructions.begin(), instructions.end())
+    for (auto &orderTimestep : instructions)
     {
         for (auto &order : orderTimestep)
         {

@@ -1,7 +1,6 @@
 #ifndef TABLE
 #define TABLE
 
-#include <cstring>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -11,7 +10,7 @@
 // https://stackoverflow.com/questions/24853914/read-2d-array-in-csv-into-a-map-c
 
 typedef std::map<std::string, std::map<std::string, float>> datatable;
-const char *DELIMS = "\t ,";
+const static char *DELIMS = "\t ,";
 const int MAX_LINE_LENGTH = 1024;
 
 class Table
