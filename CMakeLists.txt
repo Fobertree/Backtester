@@ -20,7 +20,7 @@ include_directories("${CMAKE_SOURCE_DIR}/include")
 include_directories("${CMAKE_SOURCE_DIR}/include/tqdm")
 
 file(GLOB SOURCE_FILES "src/*.cpp")
-file(GLOB HEADER_FILES "include/*hpp" "include/tqdm/*hpp")
+file(GLOB HEADER_FILES "include/*hpp" "include/tqdm/*hpp" "include/yfapimodel.h")
 file(GLOB_RECURSE EXTERN_HEADER_FILES "extern/include/")
 file(GLOB PYTHON_FILES "python/*.cpp")
 
