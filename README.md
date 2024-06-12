@@ -20,6 +20,8 @@ Using libcurl to support YFinance API. May replace with another library. Otherwi
   - C++ $\rightarrow$ Python
     - unordered_map to dict
     - vector to list
+- Thread pool concurrency
+- Rewrite Table
 
 Modify Cmake to compile dll so we can interface with python
 
@@ -28,3 +30,8 @@ Modify Cmake to compile dll so we can interface with python
 `cmake -B build . -G "Visual Studio 17 2022"`
 
 [Build C++ Extension for Python in Visual Studio](https://learn.microsoft.com/en-us/visualstudio/python/working-with-c-cpp-python-in-visual-studio?view=vs-2022)
+
+Other IDEs, run `cmake .` and
+`make .`
+
+https://dev.to/uponthesky/c-making-a-simple-json-parser-from-scratch-250g

@@ -31,10 +31,10 @@ Metrics
 typedef std::tuple<std::string, std::string, float> order; // ticker, order_type, float
 typedef std::map<std::string, std::map<std::string, float>> datatable;
 
-struct settings
+typedef struct settings
 {
-    float commmsion, flatFee;
-};
+    float commission, flatFee;
+} settings;
 
 class Backtester
 {
@@ -46,7 +46,7 @@ public:
     void run_backtest(); // switch case
     // void run_instruction(order order);
     //float getCash() { return cash; }
-    int getTimestep() { return timestep; }
+    int getTimestep() const { return timestep; }
     // std::vector<float> getPortfolioReturns() { return portfolio_values; } // return historical values
     float getPortfolioValue(); // current value
     std::unordered_map<std::string, int> getHoldings();
@@ -70,7 +70,7 @@ private:
     // unordered_map<T, U> tracker; // tbd exact structure
     float cash;
     std::unordered_map<std::string, int> holdings;
-    // need to figure out how to best handle time objects
+    // need to figure out how to best handle time objects. Probably std::chrono, but need functionality to find next valid market date
     std::string startDate; // yyyymmdd?
     std::string endDate;
     // Indexing our table/dataframe object
@@ -83,6 +83,7 @@ private:
     static Table dataTable;
     static datatable stockData;
     static std::vector<std::string> dates;
+    settings config;
 };
 
 #endif

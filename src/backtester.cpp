@@ -7,6 +7,7 @@ Use Pybind11. Boost.Python has too many installation requirements and doesn't se
 
 #include <thread>
 #include <iostream>
+#include <utility>
 #include "backtester.h"
 constexpr auto MAX_THREADS = 4;
 constexpr auto PATH = "data.csv";
@@ -26,7 +27,7 @@ Backtester::Backtester()
 Backtester::Backtester(float cash, std::string startDate, std::string endDate, std::vector<std::vector<order>> instructions, std::string path)
 {
     this->cash = cash;
-    this->startDate = startDate;
+    this->startDate = std::move(startDate);
     this->endDate = endDate;
     this->instructions = instructions;
     offset = 0;
@@ -71,6 +72,7 @@ void Backtester::run_backtest()
 {
     // order is a size-3 tuple declared in header
     //tqdm::tqdm(instructions.begin(), instructions.end())
+    //#pragma unroll
     for (auto &orderTimestep : instructions)
     {
         for (auto &order : orderTimestep)
