@@ -31,7 +31,7 @@
 
 #define in(val,x) (x.find(val) != x.end())
 
-namespace datatable
+namespace DataTable
 {
     //typedef std::map<std::string, std::map<std::string, float>> datatable; // to remove
     const static char *DELIMS = "\t ,";
@@ -48,7 +48,7 @@ namespace datatable
         typedef std::vector<colType> col;
         typedef std::vector<std::vector<float>> vvf; // data
     public:
-        explicit Table(std::string path); // open file and read from path
+        explicit Table(const std::string& path); // open file and read from path
         //Table(std::string data);
         Table();
 
@@ -79,9 +79,37 @@ namespace datatable
     private:
         vvf data;
         std::unordered_map<rowType, row *> rowLabels;
-        std::unordered_map<colType, int> colLabels;
+        std::unordered_map<colType, int> colLabels; // do we need this to be ordered
+        std::vector<rowType> orderedRowLabels;
+        std::vector<colType> orderedColLabels;
         std::string outputFileName;
+        template<typename itemType>
+        std::vector<itemType> copyVector(std::vector<itemType> & otherVec);
     };
+
+    template<typename rowType, typename colType>
+    void Table<rowType, colType>::printData() {
+//        for (auto &columnMap : data)
+//        {
+//            for (auto cell : columnMap.second)
+//            {
+//                std::cout << columnMap.first /*First label*/ << " "
+//                          << cell.first /*Second label*/ << " "
+//                          << cell.second /*Value*/ << std::endl;
+//            }
+//        }
+    }
+
+    template<typename rowType, typename colType>
+    template<typename itemType>
+    std::vector<itemType> Table<rowType, colType>::copyVector(std::vector<itemType> &otherVec)
+    {
+        std::vector<itemType> newVec;
+        newVec.reserve(otherVec.size());
+        std::copy(newVec,otherVec.begin(),otherVec.end());
+
+        return std::vector<itemType>();
+    }
 
 }// namespace
 #endif

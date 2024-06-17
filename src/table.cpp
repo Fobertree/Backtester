@@ -1,58 +1,95 @@
 #include <table.h>
+#include <sstream>
+#include <vector>
+#include <fstream>
+
 // https://stackoverflow.com/questions/24853914/read-2d-array-in-csv-into-a-map-c
 
-Table::Table(std::string path)
+// why both rowType and colType??? Should be just dataType?
+template<typename rowType, typename colType>
+DataTable::Table<rowType, colType>::Table(const std::string& path)
 {
     try
     {
         // Relative path
-        std::ifstream fin("./data/" + path);
+        std::ifstream file("./data/" + path);
 
-        if (!fin)
+        if (!file)
         {
             std::cout << "Error, could not open file";
             throw -1;
         }
 
+        // row: ticker. col: date
+        // is interchanged row/col more efficient?
         std::string row, col;
+        int rowIdx, colIdx;
         float value;
-        while (fin >> row >> col >> value)
+        std::string line;
+
+        if (!file.eof())
         {
-            data[row][col] = value;
+            // handle column names from csv
+            std::getline(file,line);
+            std::istringstream lineStream(line);
+            std::string token;
+            colIdx = 0;
+
+            while (std::getline(lineStream,token,','))
+            {
+                // CPP alternative to strtok, but with one delimiter
+
+                colLabels[colIdx++] = token;
+            }
         }
 
-        fin.close();
-
-        // Push rowLabels and colLabels
-
-        for (auto &itR : data)
+        rowIdx = 0;
+        int num;
+        while (!file.eof())
         {
-            rowLabels.push_back(itR.first);
-        }
+            // get row from csv
+            std::getline(file,line);
 
-        for (auto iter = data.begin()->second.begin(); iter != data.begin()->second.end(); ++iter)
-        {
-            colLabels.push_back(iter->first);
-        }
+            std::istringstream lineStream(line);
+            std::string token;
+
+            std::vector<rowType> rowData;
+            std::string rowLabel;
+            rowIdx = 0;
+
+            if (std::getline(lineStream,token,','))
+            {
+                rowLabel = token;
+                rowLabels[rowLabel] = nullptr;
+            }
+
+            while (std::getline(lineStream,token,','))
+            {
+                // CPP alternative to strtok, but with one delimiter
+
+                try {
+                    num = std::stoi(token);
+                    rowData.push_back(num);
+                }
+                catch (std::invalid_argument const &ex)
+                {
+                    std::cout << "std::invalid_argument::what(): " << ex.what() << "token:  " << token << '\n';
+                }
+            } // finish iterating row
+
+            data.push_back(rowData);
+            rowLabels[rowLabel] = &(data[rowIdx++]);
+        } // finish iterating file
+
+        file.close();
+
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << '\n';
+        std::cerr << "General exception" << e.what() << '\n';
     }
 }
 
-void Table::printData()
-{
-    for (auto &columnMap : data)
-    {
-        for (auto cell : columnMap.second)
-        {
-            std::cout << columnMap.first /*First label*/ << " "
-                      << cell.first /*Second label*/ << " "
-                      << cell.second /*Value*/ << std::endl;
-        }
-    }
-}
 
 // Overloading map operator seems complicated and unnecessary rn. Remember map is a binary implementation
 // const auto &Table::operator[];

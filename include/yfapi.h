@@ -8,6 +8,7 @@
 #include <string>
 #include <curl/curl.h>
 
+// use class or namespace?
 
 class YfApi
 {

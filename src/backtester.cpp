@@ -9,11 +9,11 @@ Use Pybind11. Boost.Python has too many installation requirements and doesn't se
 #include <iostream>
 #include <utility>
 #include "backtester.h"
+#include <table.h>
 constexpr auto MAX_THREADS = 4;
 constexpr auto PATH = "data.csv";
 
-Table Backtester::dataTable = Table(PATH);
-datatable Backtester::stockData = dataTable.getData();
+TABLE::Table data = Table(PATH);
 std::vector<std::string> Backtester::dates = dataTable.getDates();
 
 Backtester::Backtester()

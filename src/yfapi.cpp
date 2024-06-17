@@ -33,6 +33,7 @@ const std::string YfApi::concat(const std::string tkn, ...)
 
 std::string YfApi::build_api_url(std::string ticker, std::string start_date, std::string end_date)
 {
+    // switch to move assignment over copying
     std::vector<std::string> data = { ticker,start_date,end_date };
     std::string res{""};
     std::istringstream iss(yf_url);
@@ -77,7 +78,7 @@ static size_t cb(char *data, size_t size, size_t nmemb, void *clientp)
     size_t realsize = size * nmemb;
     memory *mem = (struct memory *)clientp;
 
-    char *ptr = realloc(mem->response,mem->size + realsize + 1);
+    char *ptr = static_cast<char *>(realloc(mem->response, mem->size + realsize + 1));
     if (!ptr)
         return 0; // out of memory
     mem-> response = ptr;
