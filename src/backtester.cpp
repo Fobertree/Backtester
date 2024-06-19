@@ -13,8 +13,8 @@ Use Pybind11. Boost.Python has too many installation requirements and doesn't se
 constexpr auto MAX_THREADS = 4;
 constexpr auto PATH = "data.csv";
 
-TABLE::Table data = Table(PATH);
-std::vector<std::string> Backtester::dates = dataTable.getDates();
+DataTable::Table data = DataTable::Table<>(PATH);
+std::vector<std::string> Backtester::dates = data.getDates();
 
 Backtester::Backtester()
 {
@@ -32,7 +32,7 @@ Backtester::Backtester(float cash, std::string startDate, std::string endDate, s
     this->instructions = instructions;
     offset = 0;
 
-    Backtester::dataTable = Table("data.csv");
+    Backtester::dataTable = DataTable::Table<>("data.csv");
     Backtester::stockData = dataTable.getData();
     Backtester::dates = dataTable.getDates();
 }
@@ -48,6 +48,7 @@ Backtester::Backtester(float cash, std::string startDate, std::string endDate, s
 
 void Backtester::evalOrder(order &order)
 {
+    //process order
     std::string order_type, ticker;
     int quantity;
 
@@ -71,8 +72,8 @@ void Backtester::evalOrder(order &order)
 void Backtester::run_backtest()
 {
     // order is a size-3 tuple declared in header
-    //tqdm::tqdm(instructions.begin(), instructions.end())
     //#pragma unroll
+    // coded like shit
     for (auto &orderTimestep : instructions)
     {
         for (auto &order : orderTimestep)
@@ -82,9 +83,11 @@ void Backtester::run_backtest()
             evalOrder(order);
         }
 
-        portfolio_values.push_back(getPortfolioValue());
-        timestep += 1;
+        portfolio_values.push_back(getPortfolioValue()); //AUM
+        timestep++;
     }
+    // TODO: REWRITE BELOW
+    offset = 0;
 }
 
 float Backtester::getPortfolioValue()
@@ -104,7 +107,7 @@ std::unordered_map<std::string, int> Backtester::getHoldings()
     return holdings;
 }
 
-void Backtester::buyStock(std::string ticker, int quantity)
+void Backtester::buyStock(const std::string& ticker, int quantity)
 {
     // check if we have the funds
     float cost;
@@ -153,6 +156,7 @@ void Backtester::sellStock(std::string ticker, int quantity)
 
 void Backtester::setStartIndex(std::string startDate)
 {
+    // optimizable via strcmp and binary search
     dates = dataTable.getDates();
     for (int i = 0; i < dates.size(); i++)
     {
@@ -164,10 +168,14 @@ void Backtester::setStartIndex(std::string startDate)
     std::cerr << "Failed to locate valid startDate in data: " << startDate << std::endl;
 }
 
-float Backtester::fetchStockPrice(std::string ticker, int quantity, int timestep)
+float Backtester::fetchStockPrice(const std::string& ticker, int quantity, int timestep)
 {
     // rewrite or overload to be a lot more dynamic and flexible beyond pseudo-indexed map
     // TODO: Support and make flexible Yfinance curl requests
-    std::string date = dates[offset + timestep];
-    return stockData[ticker][date];
+    // TODO: Binary search for keys for lookup
+    // Maybe trade off space with extra unordered_map of ticker, colIdx
+
+    return data.getValue(timestep,ticker);
+
+    throw 2;
 }

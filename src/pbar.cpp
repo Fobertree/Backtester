@@ -4,8 +4,6 @@
 #include <pbar.h>
 #include <iostream>
 
-// https://stackoverflow.com/questions/28350254/how-do-i-rewrite-a-line-of-text-in-a-console-project-c
-
 Pbar::Pbar()
 {
     total = 100;

@@ -18,18 +18,17 @@ Metrics
 #define BACKTESTER
 
 #include <string>
-//#include <vector>
+#include <vector>
 #include <tuple>
 #include <unordered_map>
 #include <thread>
 #include <mutex>
 #include <queue>
-//#include <tqdm/tqdm.h>
-//#include <utils.h>
 #include "table.h"
 
 typedef std::tuple<std::string, std::string, float> order; // ticker, order_type, float
-typedef std::map<std::string, std::map<std::string, float>> datatable;
+typedef std::unordered_map<std::string, std::map<std::string, float>> datatable;
+typedef std::vector<std::vector<float>> vvf;
 
 typedef struct settings
 {
@@ -50,16 +49,19 @@ public:
     // std::vector<float> getPortfolioReturns() { return portfolio_values; } // return historical values
     float getPortfolioValue(); // current value
     std::unordered_map<std::string, int> getHoldings();
-    void buyStock(std::string ticker, int quantity);
+    void buyStock(const std::string& ticker, int quantity);
     void sellStock(std::string ticker, int quantity);
     void setStartIndex(std::string startDate);
     void evalOrder(order &order);
-    float fetchStockPrice(std::string ticker, int quantity, int timestep);
+    float fetchStockPrice(const std::string& ticker, int quantity, int timestep);
     std::string getStartDate() const { return startDate; }
     std::string getEndDate() const { return endDate; }
     // const getters for __repr__
     float getCash() const { return cash; }
     std::vector<float> getPortfolioReturns() const { return portfolio_values; }
+    // config
+    void addConfig();
+    void removeConfig();
 
 protected:
 private:
@@ -74,16 +76,12 @@ private:
     std::string startDate; // yyyymmdd?
     std::string endDate;
     // Indexing our table/dataframe object
-    int startIndex;
-    std::mutex _m;
-    // template <T>
-    // std::queue<T> _q;
-    int offset;
+    int offset; // start index for row
 
-    static Table dataTable;
-    static datatable stockData;
+    static DataTable::Table <> dataTable; // stock price data
+    static vvf stockData; // holdings
     static std::vector<std::string> dates;
-    settings config;
+    settings config{};
 };
 
 #endif

@@ -12,6 +12,7 @@ Using libcurl to support YFinance API. May replace with another library. Otherwi
 
 - Pull data from csv
   - YF api calls optional (low priority)
+  - String response $\rightarrow$ JSON $\rightarrow$ Table (in_sort)
   - Options to pull data into: DataTable, DataFrame, map (with iterator, prob vector with index .find for helper vector of tickers)
 - Python bindings (pybind11)
   - Python $\rightarrow$ C++
@@ -22,6 +23,8 @@ Using libcurl to support YFinance API. May replace with another library. Otherwi
     - vector to list
 - Thread pool concurrency
 - Rewrite Table
+
+REWRITE run_backtest() function
 
 Modify Cmake to compile dll so we can interface with python
 

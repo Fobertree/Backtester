@@ -55,14 +55,20 @@ namespace DataTable
         // int &Table::operator[];
         void printData();
 
-        std::vector<std::string> getDates() { return rowLabels; }
+        std::vector<std::string>& getDates() { return rowVals; }
 
-        std::vector<std::string> getTickers() { return colLabels; }
+        std::vector<std::string> & getTickers() { return colVals; }
 
         void setOutputFileName(std::string newName) {outputFileName = newName;}
         std::string getOutputFileName() const {return outputFileName;}
 
         vvf &getData() { return data; }
+
+        // get value from array
+        float getValue(int rIdx,int cIdx);
+        float getValue(rowType rName, colType cName);
+        float getValue(int rIdx, colType cName);
+        float getValue(rowType rName, int cIdx);
 
         // write getRow and getColumn methods, also fetch specific cell
         dataSlice *getRow(rowType row);
@@ -78,11 +84,14 @@ namespace DataTable
     protected:
     private:
         vvf data;
+        std::vector<rowType> rowVals;
+        std::vector<colType> colVals;
         std::unordered_map<rowType, row *> rowLabels;
         std::unordered_map<colType, int> colLabels; // do we need this to be ordered
         std::vector<rowType> orderedRowLabels;
         std::vector<colType> orderedColLabels;
         std::string outputFileName;
+        int getRowIdx(rowType rowLabel, bool closest = false);
         template<typename itemType>
         std::vector<itemType> copyVector(std::vector<itemType> & otherVec);
     };
@@ -104,6 +113,7 @@ namespace DataTable
     template<typename itemType>
     std::vector<itemType> Table<rowType, colType>::copyVector(std::vector<itemType> &otherVec)
     {
+        // slower than swapping
         std::vector<itemType> newVec;
         newVec.reserve(otherVec.size());
         std::copy(newVec,otherVec.begin(),otherVec.end());
