@@ -24,10 +24,10 @@ Backtester::Backtester()
     offset = 0;
 }
 
-Backtester::Backtester(float cash, std::string startDate, std::string endDate, std::vector<std::vector<order>> instructions, std::string path)
+Backtester::Backtester(float cash, const std::string& startDate, const std::string& endDate, const std::vector<std::vector<order>>& instructions, const std::string& path)
 {
     this->cash = cash;
-    this->startDate = std::move(startDate);
+    this->startDate = startDate;
     this->endDate = endDate;
     this->instructions = instructions;
     offset = 0;
@@ -37,7 +37,7 @@ Backtester::Backtester(float cash, std::string startDate, std::string endDate, s
     Backtester::dates = dataTable.getDates();
 }
 
-Backtester::Backtester(float cash, std::string startDate, std::string endDate, std::vector<std::vector<order>> instructions)
+Backtester::Backtester(float cash, const std::string& startDate, const std::string& endDate, const std::vector<std::vector<order>>& instructions)
 {
     this->cash = cash;
     this->startDate = startDate;
@@ -73,21 +73,23 @@ void Backtester::run_backtest()
 {
     // order is a size-3 tuple declared in header
     //#pragma unroll
-    // coded like shit
+    // threads for each order at a specific timestep.
+    // mutex on cash or localize variable
     for (auto &orderTimestep : instructions)
     {
+        // orderTimestep (vector<order>): all orders to be purchased at specific timestep
         for (auto &order : orderTimestep)
         {
+            // order: ticker, order_type, float
             // look into thread pool
 
+            // tiny redundancy in evalOrder where we fetch price in evalOrder and fetch again in getPortFolioValue()
             evalOrder(order);
         }
 
-        portfolio_values.push_back(getPortfolioValue()); //AUM
+        portfolio_values.emplace_back(getPortfolioValue()); //AUM
         timestep++;
     }
-    // TODO: REWRITE BELOW
-    offset = 0;
 }
 
 float Backtester::getPortfolioValue()
@@ -119,10 +121,10 @@ void Backtester::buyStock(const std::string& ticker, int quantity)
     }
 
     cash -= cost;
-    holdings.find(ticker) != holdings.end() ? holdings[ticker] = holdings[ticker] + quantity : holdings[ticker];
+    holdings[ticker] += quantity;
 }
 
-void Backtester::sellStock(std::string ticker, int quantity)
+void Backtester::sellStock(const std::string& ticker, int quantity)
 {
     if (holdings.find(ticker) != holdings.end())
     {
@@ -148,7 +150,7 @@ void Backtester::sellStock(std::string ticker, int quantity)
 
     else
     {
-        holdings[ticker] = holdings[ticker] - quantity;
+        holdings[ticker] -= quantity;
     }
 
     cash += cost;

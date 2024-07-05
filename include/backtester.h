@@ -39,8 +39,8 @@ class Backtester
 {
 public:
     Backtester();
-    Backtester(float cash, std::string startDate, std::string endDate, std::vector<std::vector<order>> instructions, std::string path);
-    Backtester(float cash, std::string startDate, std::string endDate, std::vector<std::vector<order>> instructions);
+    Backtester(float cash, const std::string& startDate, const std::string& endDate, const std::vector<std::vector<order>>& instructions, const std::string& path);
+    Backtester(float cash, const std::string& startDate, const std::string& endDate, const std::vector<std::vector<order>>& instructions);
 
     void run_backtest(); // switch case
     // void run_instruction(order order);
@@ -50,10 +50,10 @@ public:
     float getPortfolioValue(); // current value
     std::unordered_map<std::string, int> getHoldings();
     void buyStock(const std::string& ticker, int quantity);
-    void sellStock(std::string ticker, int quantity);
+    void sellStock(const std::string& ticker, int quantity);
     void setStartIndex(std::string startDate);
     void evalOrder(order &order);
-    float fetchStockPrice(const std::string& ticker, int quantity, int timestep);
+    static static float fetchStockPrice(const std::string& ticker, int quantity, int timestep);
     std::string getStartDate() const { return startDate; }
     std::string getEndDate() const { return endDate; }
     // const getters for __repr__

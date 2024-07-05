@@ -81,6 +81,9 @@ DataTable::Table<rowType, colType>::Table(const std::string& path)
             rowLabels[rowLabel] = &(data[rowIdx++]);
         } // finish iterating file
 
+        numRows = data.size();
+        numCols = data[0].size();
+
         file.close();
 
     }
@@ -144,3 +147,14 @@ template<typename rowType, typename colType> int DataTable::Table<rowType,colTyp
 
 // Overloading map operator seems complicated and unnecessary rn. Remember map is a binary implementation
 // const auto &Table::operator[];
+
+template<typename rowType, typename colType> void DataTable::Table<rowType, colType>::insert_row(rowType rowName, const std::vector<float>& rowValues)
+{
+    if (rowVals.contains(rowName))
+    {
+        // not handling replacing values in here since not useful for backtester
+        return;
+    }
+    data.push_back(rowValues);
+    numRows++;
+};

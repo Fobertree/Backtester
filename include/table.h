@@ -29,6 +29,7 @@
 
 // https://stackoverflow.com/questions/24853914/read-2d-array-in-csv-into-a-map-c
 
+// replace macro with contains since C++20
 #define in(val,x) (x.find(val) != x.end())
 
 namespace DataTable
@@ -62,8 +63,6 @@ namespace DataTable
         void setOutputFileName(std::string newName) {outputFileName = newName;}
         std::string getOutputFileName() const {return outputFileName;}
 
-        vvf &getData() { return data; }
-
         // get value from array
         float getValue(int rIdx,int cIdx);
         float getValue(rowType rName, colType cName);
@@ -81,19 +80,31 @@ namespace DataTable
 
         void addCol();
 
+        // add one data value to table
+        void insert_data(rowType rowName, colType colName, float val);
+        // can add custom comparator to generalize. Below methods are key insort
+        void insert_row(rowType rowName, const std::vector<float>& rowValues);
+        void insert_col(colType colName,std::vector<float> colValues);
+
     protected:
     private:
+        // access data via labels in unordered_map
+        // O(1) access and insertion. weaknesses: linked list insertion times, memory, hash collisions.
         vvf data;
+        // row labels, ordered
         std::vector<rowType> rowVals;
         std::vector<colType> colVals;
+        // store pointers/indices
         std::unordered_map<rowType, row *> rowLabels;
         std::unordered_map<colType, int> colLabels; // do we need this to be ordered
-        std::vector<rowType> orderedRowLabels;
-        std::vector<colType> orderedColLabels;
         std::string outputFileName;
         int getRowIdx(rowType rowLabel, bool closest = false);
         template<typename itemType>
         std::vector<itemType> copyVector(std::vector<itemType> & otherVec);
+
+        // change to size_t?
+        int numRows{0};
+        int numCols{0};
     };
 
     template<typename rowType, typename colType>
