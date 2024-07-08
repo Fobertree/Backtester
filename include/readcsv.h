@@ -12,26 +12,24 @@
 #include <fstream>
 #include <iostream>
 
-namespace CSVReader
-{
-    using std::vector;
-    template<typename RTYPE, typename CTYPE, typename DTYPE>
-    [[nodiscard]] const std::tuple<vector<RTYPE>,vector<CTYPE>,vector<DTYPE>>& CSVToTable(const std::string& path)
-    {
-        static std::tuple<vector<RTYPE>,vector<CTYPE>,vector<DTYPE>> res;
-        vector<RTYPE> rowLabels;
-        vector<CTYPE> colLabels;
-        vector<vector<DTYPE>> data;
+using std::vector;
 
+template<typename R = std::string, typename C = std::string, typename D = float>
+class CSVReader
+{
+public:
+    explicit CSVReader(const std::string& path = "./Data/data.csv", char delim = ',')
+    {
+        csv_path = path;
         try
         {
             // Relative path
-            std::ifstream file("./data/" + path);
+            std::ifstream file(path);
 
             if (!file)
             {
                 std::cout << "Error, could not open file";
-                throw -1;
+                throw std::invalid_argument("INVALID PATH: ");
             }
 
             // row: ticker. col: date
@@ -48,11 +46,11 @@ namespace CSVReader
                 std::string token;
                 colIdx = 0;
 
-                while (std::getline(lineStream,token,','))
+                while (std::getline(lineStream,token,delim))
                 {
                     // CPP alternative to strtok, but with one delimiter
-
-                    colLabels[colIdx++] = token;
+                    mapColLabels[(C)(token)] = colIdx++;
+                    colLabels.push_back((C)(token));
                 }
             }
 
@@ -65,14 +63,14 @@ namespace CSVReader
                 std::istringstream lineStream(line);
                 std::string token;
 
-                std::vector<RTYPE> rowData;
+                std::vector<D> rowData;
                 std::string rowLabel;
                 rowIdx = 0;
 
                 if (std::getline(lineStream,token,','))
                 {
                     rowLabel = token;
-                    rowLabels[rowLabel] = nullptr;
+                    rowLabels.push_back(rowLabel);
                 }
 
                 while (std::getline(lineStream,token,','))
@@ -81,31 +79,67 @@ namespace CSVReader
 
                     try {
                         num = std::stoi(token);
-                        rowData.push_back(num);
+                        rowData.push_back((D)(num));
                     }
-                    catch (std::invalid_argument const &ex)
+                    catch (std::invalid_argument const &e)
                     {
-                        std::cout << "std::invalid_argument::what(): " << ex.what() << "token:  " << token << '\n';
+                        std::cout << "std::invalid_argument::what(): " << e.what() << "token:  " << token << '\n';
                     }
                 } // finish iterating row
 
                 data.push_back(rowData);
-                rowLabels[rowLabel] = &(data[rowIdx++]);
+                mapRowLabels[(R)(rowLabel)] = &(data[rowIdx++]);
             } // finish iterating file
 
             file.close();
 
         }
+        catch (std::invalid_argument const &e)
+        {
+            std::cerr << "Invalid Argument Exception: " << e.what() << "\nPath: " << path;
+        }
         catch (const std::exception &e)
         {
-            std::cerr << "General exception" << e.what() << '\n';
+            std::cerr << "General exception: " << e.what() << '\n';
         }
-        res[0] = rowLabels;
-        res[1] = colLabels;
-        res[2] = data;
-        return res;
-    } // endCSVToTable
+        res = std::make_tuple(rowLabels,colLabels,data);
+    }
 
-} // end namespace
+    std::tuple<vector<R>,vector<C>,vector<D>>& getAll() const
+    {
+        return res;
+    };
+
+    const vector<R>& getRowLabels() const
+    {
+        return rowLabels;
+    }
+
+    const vector<C>& getColLabels() const
+    {
+        return colLabels;
+    }
+
+    const vector<vector<D>>& getData() const
+    {
+        return data;
+    }
+
+    [[nodiscard]] const std::string& getCSVPath() const
+    {
+        return csv_path;
+    }
+
+    //~CSVReader();
+private:
+    std::tuple<vector<R>,vector<C>,vector<vector<D>>> res;
+    vector<R> rowLabels;
+    vector<C> colLabels;
+    vector<vector<D>> data;
+    std::string csv_path;
+    // mapped labels
+    std::unordered_map<R,std::vector<D>*> mapRowLabels;
+    std::unordered_map<C, int> mapColLabels;
+}; // end CSVReader class
 
 #endif //CPP_BACKTESTER_READCSV_H

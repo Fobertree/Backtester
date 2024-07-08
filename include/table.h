@@ -1,136 +1,228 @@
-#ifndef TABLE
-#define TABLE
+//
+// Created by Alexa on 7/4/2024.
+//
 
-#include <fstream>
+#ifndef CPP_BACKTESTER_TABLE_H
+#define CPP_BACKTESTER_TABLE_H
+
 #include <string>
 #include <vector>
-#include <map>
-#include <unordered_map>
 #include <iostream>
+#include <type_traits>
+#include <typeinfo>
+#include <stdexcept>
+#include <unordered_map>
+#include "readcsv.h"
 
+// std insert
 /*
- * Redesign
- *
- * Datetime objects? boost::date, std::chrono::time_point. Can just leave it as a string?
- * unordered_map of (date-indexed type, std::chrono?) pointers for rows (each row being a vector), index vector by column number.
- * Shift to unordered_map for O(logn)->O(1) operations
- * Can extend values to be templated but not relevant for our use case
- * Data: 2d vector of floats
- * Row access: unordered_map <chrono, *std::vector<float>>
- * Column access: unordered_map <std::string, int>
- *
- * Instance variables:
- * - cur date index (int): pseudo-iterator
- *
- * To-Do:
- * - Support yfinance Curl requests if csv not detected (and save downloaded data to csv)
- * - Get all valid market dates? May not be necessary if we can just parse the dates from yfinance api or input csv
+ * Features
+ * - load from csv
+ * - update data
+ * - print data
+ * LT
+ * - Add python bindings for fun?
  */
 
-// https://stackoverflow.com/questions/24853914/read-2d-array-in-csv-into-a-map-c
+// TODO: add unordered_map utility
 
-// replace macro with contains since C++20
-#define in(val,x) (x.find(val) != x.end())
-
-namespace DataTable
+template<typename R = std::string,typename C = std::string, typename D = float>
+class Table
 {
-    //typedef std::map<std::string, std::map<std::string, float>> datatable; // to remove
-    const static char *DELIMS = "\t ,";
-    const int MAX_LINE_LENGTH = 1024;
-
-    typedef struct dataSlice {
-        std::vector<float> values;
-        std::string label;
-    } dataSlice;
-
-    template<typename rowType = std::string, typename colType = std::string>
-    class Table {
-        typedef std::vector<rowType> row;
-        typedef std::vector<colType> col;
-        typedef std::vector<std::vector<float>> vvf; // data
-    public:
-        explicit Table(const std::string& path); // open file and read from path
-        //Table(std::string data);
-        Table();
-
-        // int &Table::operator[];
-        void printData();
-
-        std::vector<std::string>& getDates() { return rowVals; }
-
-        std::vector<std::string> & getTickers() { return colVals; }
-
-        void setOutputFileName(std::string newName) {outputFileName = newName;}
-        std::string getOutputFileName() const {return outputFileName;}
-
-        // get value from array
-        float getValue(int rIdx,int cIdx);
-        float getValue(rowType rName, colType cName);
-        float getValue(int rIdx, colType cName);
-        float getValue(rowType rName, int cIdx);
-
-        // write getRow and getColumn methods, also fetch specific cell
-        dataSlice *getRow(rowType row);
-
-        dataSlice *getCol(colType col);
-
-        float getCell(rowType row, colType col);
-
-        void addRow();
-
-        void addCol();
-
-        // add one data value to table
-        void insert_data(rowType rowName, colType colName, float val);
-        // can add custom comparator to generalize. Below methods are key insort
-        void insert_row(rowType rowName, const std::vector<float>& rowValues);
-        void insert_col(colType colName,std::vector<float> colValues);
-
-    protected:
-    private:
-        // access data via labels in unordered_map
-        // O(1) access and insertion. weaknesses: linked list insertion times, memory, hash collisions.
-        vvf data;
-        // row labels, ordered
-        std::vector<rowType> rowVals;
-        std::vector<colType> colVals;
-        // store pointers/indices
-        std::unordered_map<rowType, row *> rowLabels;
-        std::unordered_map<colType, int> colLabels; // do we need this to be ordered
-        std::string outputFileName;
-        int getRowIdx(rowType rowLabel, bool closest = false);
-        template<typename itemType>
-        std::vector<itemType> copyVector(std::vector<itemType> & otherVec);
-
-        // change to size_t?
-        int numRows{0};
-        int numCols{0};
-    };
-
-    template<typename rowType, typename colType>
-    void Table<rowType, colType>::printData() {
-//        for (auto &columnMap : data)
-//        {
-//            for (auto cell : columnMap.second)
-//            {
-//                std::cout << columnMap.first /*First label*/ << " "
-//                          << cell.first /*Second label*/ << " "
-//                          << cell.second /*Value*/ << std::endl;
-//            }
-//        }
-    }
-
-    template<typename rowType, typename colType>
-    template<typename itemType>
-    std::vector<itemType> Table<rowType, colType>::copyVector(std::vector<itemType> &otherVec)
+public:
+    // constructors
+    explicit Table(const std::string& csv_path)
     {
-        // slower than swapping
-        std::vector<itemType> newVec;
-        newVec.reserve(otherVec.size());
-        std::copy(newVec,otherVec.begin(),otherVec.end());
+        auto csvData = CSVReader<std::string,std::string,float> (csv_path);
+        rowLabels = csvData.getRowLabels();
+        colLabels = csvData.getColLabels();
+        data = csvData.getData();
+        //std::tie(rowLabels,colLabels,data) = csvData.getAll();
+    }
+    Table()
+    {
+        Table("./data.csv");
+    };
+    // destructor
+    // ~Table();
+    // insertion
+    // Overload for performance enhancement on strings
+    // push back
+    void append_row(const std::vector<D>& row, const std::string& rowLabel)
+    {
+        int tmpLen;
+        try
+        {
+            if ((tmpLen = row.size()) != colLen)
+                throw std::invalid_argument("Incorrect length of column");
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::cerr << e.what() << ": " << "Num Rows: " << rowLen << "\nLength of column: " << tmpLen << std::endl;
+        }
+        data.insert(data.end(),row.begin(),row.end());
+        rowLabels.insert(rowLabels.back(),rowLabel);
+    }
+    void append_col(const std::vector<D>& col, const std::string& colLabel)
+    {
+        int tmpLen;
+        try
+        {
+            if ((tmpLen = col.size()) != rowLen)
+                throw std::invalid_argument("Incorrect length of column");
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::cerr << e.what() << ": " << "Num Rows: " << rowLen << "\nLength of column: " << tmpLen << std::endl;
+        }
+        data.insert(data.end(),col.begin(),col.end());
+        colLabels.insert(rowLabels.back(),colLabel);
+    }
+    // in order
+    void insert_row(const std::vector<D>& row, const std::string& rowLabel)
+    {
+        int tmpLen;
+        try
+        {
+            if ((tmpLen = row.size()) != colLen)
+                throw std::invalid_argument("Incorrect length of column");
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::cerr << e.what() << ": " << "Num Rows: " << rowLen << "\nLength of column: " << tmpLen << std::endl;
+        }
+        int offset = bisect<std::string>(rowLabel,rowLabels);
+        data.insert(data.begin() + offset,row.begin(),row.end());
+        rowLabels.insert(rowLabels.begin() + offset, row.begin(),row.end());
+    }
+    void insert_col(const std::vector<D>& col, const std::string& colLabel)
+    {
+        int tmpLen;
+        try
+        {
+            if ((tmpLen = col.size()) != colLen)
+                throw std::invalid_argument("Incorrect length of column");
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::cerr << e.what() << ": " << "Num Rows: " << rowLen << "\nLength of column: " << tmpLen << std::endl;
+        }
+        int offset = bisect<std::string>(colLabel,rowLabels);
+        data.insert(data.begin() + offset,col.begin(),col.end());
+        rowLabels.insert(rowLabels.begin() + offset, col.begin(),col.end());
+    }
+    // Generic
+    // push back
+    void append_row(const std::vector<D>& row, R rowLabel);
+    void append_col(const std::vector<D>& col, C colLabel);
+    // in order
+    void insert_row(const std::vector<D>& row, R rowLabel);
+    void insert_col(const std::vector<D>& col, C colLabel);
+    // getters
+    std::vector<int> size()
+    {
+        return {rowLen,colLen,rowLen * colLen};
+    };
+    void printTable(); //includes labels
 
-        return std::vector<itemType>();
+    D operator ()(R row, C col)
+    {
+        if (!(mapRowLabels.contains(row)) || !(mapColLabels.contains(col)))
+            throw std::out_of_range("Cannot find row and column.");
+
+        vector<D> tmpRow = *mapRowLabels[row];
+        return tmpRow[mapColLabels[col]];
     }
 
-}// namespace
-#endif
+    const std::vector<R>& getRow(R row)
+    {
+        if (!(mapRowLabels.contains(row)))
+            throw std::out_of_range("Cannot find row.");
+
+        return mapRowLabels[row];
+    }
+
+    const std::vector<C>& getCol(C col)
+    {
+        if (!(mapColLabels.contains(col)))
+            throw std::out_of_range("Cannot find col.");
+
+        std::vector<D> colData;
+        int colIdx{mapColLabels[col]};
+
+        for (const std::vector<D>& row : data)
+        {
+            colData.push_back(row[colIdx]);
+        }
+
+        return colData;
+    }
+
+    const std::vector<R>& getRowLabels()
+    {
+        return rowLabels;
+    }
+
+    const std::vector<C>& getColLabels()
+    {
+        return colLabels;
+    }
+
+    R getRowLabelByIdx(int i)
+    {
+        return rowLabels[i];
+    }
+
+    C getColLabelByIdx(int i)
+    {
+        return colLabels[i];
+    }
+private:
+    std::vector<std::vector<D>> data;
+    int rowLen{0};
+    int colLen{0};
+    // Labels
+    std::vector<R> rowLabels;
+    std::vector<C> colLabels;
+    // Label Addresses for access
+    std::unordered_map<R,std::vector<D>*> mapRowLabels;
+    std::unordered_map<C, int> mapColLabels;
+    // compare + bisect
+    bool static defaultComparator(R compareItem, R target)
+    {
+        try {
+            if (std::is_same<R, std::string>::value || std::is_same<R, int>::value) {
+                return compareItem < target;
+            } else {
+                throw std::invalid_argument("R Invalid in default comparator");
+            }
+        }
+        catch (const std::invalid_argument& e)
+        {
+            std::cerr << e.what() << ": " << typeid(R).name() << std::endl;
+        }
+
+        return false;
+    };
+    template <typename vec_type>
+    int bisect(R target, const std::vector<R>& vec, bool (*comp)() = defaultComparator)
+    {
+        // equivalent bisect_left
+        int i{0};
+        int len{vec.size()};
+
+        for (int leap = len / 2; leap > 0; leap /= 2)
+        {
+            if (vec.at(i+leap) == target)
+                return i;
+
+            // comparator must return true if we leap, false otherwise.
+            if (comp(vec.at(i+leap),target))
+                i += leap;
+        }
+        return i;
+    }
+
+}; // Table class
+
+#endif //CPP_BACKTESTER_TABLE_H

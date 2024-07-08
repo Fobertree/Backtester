@@ -7,14 +7,10 @@ Use Pybind11. Boost.Python has too many installation requirements and doesn't se
 
 #include <thread>
 #include <iostream>
-#include <utility>
 #include "backtester.h"
 #include <table.h>
 constexpr auto MAX_THREADS = 4;
 constexpr auto PATH = "data.csv";
-
-DataTable::Table data = DataTable::Table<>(PATH);
-std::vector<std::string> Backtester::dates = data.getDates();
 
 Backtester::Backtester()
 {
@@ -24,7 +20,7 @@ Backtester::Backtester()
     offset = 0;
 }
 
-Backtester::Backtester(float cash, const std::string& startDate, const std::string& endDate, const std::vector<std::vector<order>>& instructions, const std::string& path)
+Backtester::Backtester(float cash, const std::string& startDate, const std::string& endDate, const std::vector<std::vector<order>>& instructions, const std::string& path=PATH)
 {
     this->cash = cash;
     this->startDate = startDate;
@@ -32,9 +28,8 @@ Backtester::Backtester(float cash, const std::string& startDate, const std::stri
     this->instructions = instructions;
     offset = 0;
 
-    Backtester::dataTable = DataTable::Table<>("data.csv");
-    Backtester::stockData = dataTable.getData();
-    Backtester::dates = dataTable.getDates();
+    table = Table<>(path);
+
 }
 
 Backtester::Backtester(float cash, const std::string& startDate, const std::string& endDate, const std::vector<std::vector<order>>& instructions)
@@ -44,6 +39,8 @@ Backtester::Backtester(float cash, const std::string& startDate, const std::stri
     this->endDate = endDate;
     this->instructions = instructions;
     offset = 0;
+
+    table = Table<>();
 }
 
 void Backtester::evalOrder(order &order)
@@ -156,13 +153,13 @@ void Backtester::sellStock(const std::string& ticker, int quantity)
     cash += cost;
 }
 
-void Backtester::setStartIndex(std::string startDate)
+void Backtester::setStartIndex(const std::string& stDate)
 {
     // optimizable via strcmp and binary search
-    dates = dataTable.getDates();
+    dates = table.getRowLabels();
     for (int i = 0; i < dates.size(); i++)
     {
-        if (startDate == dates[i])
+        if (stDate == dates[i])
         {
             offset = i;
         }
@@ -170,14 +167,13 @@ void Backtester::setStartIndex(std::string startDate)
     std::cerr << "Failed to locate valid startDate in data: " << startDate << std::endl;
 }
 
-float Backtester::fetchStockPrice(const std::string& ticker, int quantity, int timestep)
+float Backtester::fetchStockPrice(const std::string& ticker, int quantity, int ts)
 {
     // rewrite or overload to be a lot more dynamic and flexible beyond pseudo-indexed map
     // TODO: Support and make flexible Yfinance curl requests
     // TODO: Binary search for keys for lookup
     // Maybe trade off space with extra unordered_map of ticker, colIdx
+    std::string date = table.getRowLabelByIdx(ts);
 
-    return data.getValue(timestep,ticker);
-
-    throw 2;
+    return table(date,ticker);
 }

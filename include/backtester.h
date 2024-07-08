@@ -27,7 +27,6 @@ Metrics
 #include "table.h"
 
 typedef std::tuple<std::string, std::string, float> order; // ticker, order_type, float
-typedef std::unordered_map<std::string, std::map<std::string, float>> datatable;
 typedef std::vector<std::vector<float>> vvf;
 
 typedef struct settings
@@ -45,20 +44,20 @@ public:
     void run_backtest(); // switch case
     // void run_instruction(order order);
     //float getCash() { return cash; }
-    int getTimestep() const { return timestep; }
+    [[nodiscard]] int getTimestep() const { return timestep; }
     // std::vector<float> getPortfolioReturns() { return portfolio_values; } // return historical values
     float getPortfolioValue(); // current value
     std::unordered_map<std::string, int> getHoldings();
     void buyStock(const std::string& ticker, int quantity);
     void sellStock(const std::string& ticker, int quantity);
-    void setStartIndex(std::string startDate);
+    void setStartIndex(const std::string& startDate);
     void evalOrder(order &order);
-    static static float fetchStockPrice(const std::string& ticker, int quantity, int timestep);
-    std::string getStartDate() const { return startDate; }
-    std::string getEndDate() const { return endDate; }
+    float fetchStockPrice(const std::string& ticker, int quantity, int ts);
+    const std::string& getStartDate() const { return startDate; }
+    const std::string& getEndDate() const { return endDate; }
     // const getters for __repr__
-    float getCash() const { return cash; }
-    std::vector<float> getPortfolioReturns() const { return portfolio_values; }
+    [[nodiscard]] float getCash() const { return cash; }
+    const std::vector<float>& getPortfolioReturns() const { return portfolio_values; }
     // config
     void addConfig();
     void removeConfig();
@@ -68,8 +67,6 @@ private:
     std::vector<std::vector<order>> instructions;
     std::vector<float> portfolio_values; // value of portfolio
     int timestep{0};
-    // template <T, U>
-    // unordered_map<T, U> tracker; // tbd exact structure
     float cash;
     std::unordered_map<std::string, int> holdings;
     // need to figure out how to best handle time objects. Probably std::chrono, but need functionality to find next valid market date
@@ -77,11 +74,10 @@ private:
     std::string endDate;
     // Indexing our table/dataframe object
     int offset; // start index for row
-
-    static DataTable::Table <> dataTable; // stock price data
-    static vvf stockData; // holdings
-    static std::vector<std::string> dates;
+    vvf stockData; // holdings
+    std::vector<std::string> dates;
     settings config{};
+    Table<> table;
 };
 
 #endif
