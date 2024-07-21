@@ -47,7 +47,7 @@ public:
     [[nodiscard]] int getTimestep() const { return timestep; }
     // std::vector<float> getPortfolioReturns() { return portfolio_values; } // return historical values
     float getPortfolioValue(); // current value
-    std::unordered_map<std::string, int> getHoldings();
+    const std::unordered_map<std::string, int>& getHoldings();
     void buyStock(const std::string& ticker, int quantity);
     void sellStock(const std::string& ticker, int quantity);
     void setStartIndex(const std::string& startDate);

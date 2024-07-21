@@ -72,6 +72,9 @@ void Backtester::run_backtest()
     //#pragma unroll
     // threads for each order at a specific timestep.
     // mutex on cash or localize variable
+    size_t instructionsSize{instructions.size()};
+    portfolio_values.reserve(instructionsSize);
+
     for (auto &orderTimestep : instructions)
     {
         // orderTimestep (vector<order>): all orders to be purchased at specific timestep
@@ -100,7 +103,7 @@ float Backtester::getPortfolioValue()
     return cash + equityValue;
 }
 
-std::unordered_map<std::string, int> Backtester::getHoldings()
+const std::unordered_map<std::string, int>& Backtester::getHoldings()
 {
     // add print functionality
     return holdings;
